@@ -1,53 +1,54 @@
 # PC Health
 
-Монитор состояния Mac для macOS: температуры CPU и GPU, загрузка ядер, память, диски, сеть,
-вентиляторы, питание и батарея. Плюс вкладка со **всеми** датчиками, которые машина отдаёт
-через `IOHIDEventSystem` и `AppleSMC`.
+A system monitor for the Mac. CPU and GPU temperatures, per-core load, memory, disks, network,
+fans, power draw and battery. There is also a tab that lists every sensor the machine exposes
+through `IOHIDEventSystem` and `AppleSMC`, which on an M4 comes to roughly 350 of them.
 
 
-## Требования
+## Requirements
 
-- macOS 14 или новее;
-- Xcode 15+ (проверено на macOS 15.7.7, Xcode 26.3, Swift 6.2).
+macOS 14 or later and Xcode 15+. Built and tested on macOS 15.7.7 with Xcode 26.3
 
-## Запуск
+## Running it
 
-Из корня проекта:
+From the project root:
 
 ```bash
 make run
 ```
 
-Команда соберёт сборку, упакует её в `.build/release/PC Health.app` и откроет.
-Появится окно с дашбордом и иконка в меню-баре с текущей температурой.
+That builds a release binary, wraps it in `.build/release/PC Health.app` and opens it. You get
+a window with the dashboard and a menu bar item showing the current temperature.
 
-Остальные команды:
+The other targets:
 
 ```bash
-make app          # только собрать бандл, не открывать
-make install      # скопировать приложение в /Applications
-make icon         # перерисовать иконку (Scripts/GenerateIcon.swift)
-make screenshots  # пересобрать картинки для README
-make clean        # удалить сборку
+make app          # build the bundle without opening it
+make install      # copy the app to /Applications
+make icon         # redraw the icon (Scripts/GenerateIcon.swift)
+make screenshots  # regenerate the images below
+make clean        # delete the build
 ```
 
-Через Xcode: `open Package.swift` — SwiftPM-пакет открывается как обычный проект. Запускать
-всё равно лучше через `make run`: меню-бар и иконка в Dock работают только из `.app`-бандла,
-а не из «голого» бинарника в `.build/`.
+`open Package.swift` works if you prefer Xcode, since this is a plain SwiftPM package. Launch it
+with `make run` anyway: the menu bar item and the Dock icon need a real `.app` bundle and won't
+show up when you run the bare binary out of `.build/`.
 
+The bundle is signed ad-hoc on your machine, so nothing prompts you the first time you open it.
+Reading the sensors goes through IOKit and does not need admin rights.
 
-### Управление
+### Controls
 
-- переключатель **°C / °F** и интервал опроса (1/2/5/10 с) — в тулбаре;
-- **⌘R** — обновить сейчас, **⇧⌘P** — пауза/продолжить сбор;
-- на вкладке **All sensors** — поиск по имени и SMC-ключу, фильтр по типу, экспорт в CSV.
+* the °C / °F switch and the sample interval (1, 2, 5 or 10 seconds) are in the toolbar
+* ⌘R takes a reading now, ⇧⌘P pauses and resumes sampling
+* the All sensors tab has search over names and SMC keys, a filter by type, and CSV export
 
-### Без окна, прямо в терминале
+### Without the window
 
 ```bash
-make dump     # одно измерение текстом
-make json     # то же самое в JSON — удобно для скриптов
-make bench    # сколько миллисекунд занимает один опрос датчиков
+make dump     # one reading as text
+make json     # the same reading as JSON, handy for scripts
+make bench    # how many milliseconds a sampling pass costs
 ```
 
 ```
@@ -63,57 +64,58 @@ Hottest: TCMz — 81.4°C
 Sensors found: 349
 ```
 
-## Как выглядит
+## What it looks like
 
-**Dashboard** — кольца загрузки и температур, графики, самые горячие датчики, питание, сеть и диск.
+Dashboard: load and temperature rings, charts, the hottest sensors, power, network and disk.
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
-**CPU** — загрузка по каждому ядру (сначала P-, затем E-ядра), температуры, load average, uptime.
+CPU: load per core (performance cores first, then efficiency cores), temperatures, load average,
+uptime.
 
 ![CPU](docs/screenshots/cpu.png)
 
-**All sensors** — все найденные датчики по группам, с поиском, фильтром и экспортом в CSV.
+All sensors: everything the machine reports, grouped, with search, filtering and CSV export.
 
 ![All sensors](docs/screenshots/sensors.png)
 
 <details>
-<summary><b>Остальные вкладки</b> — GPU, Memory, Storage, Network, Power &amp; Fans</summary>
+<summary><b>The rest of the tabs</b>: GPU, Memory, Storage, Network, Power &amp; Fans</summary>
 
-**GPU** — утилизация, число ядер, видеопамять, температуры.
+GPU: utilisation, core count, video memory, temperatures.
 
 ![GPU](docs/screenshots/gpu.png)
 
-**Memory** — App / Wired / Compressed / Cached / Free, memory pressure, swap.
+Memory: app, wired, compressed, cached and free, memory pressure, swap.
 
 ![Memory](docs/screenshots/memory.png)
 
-**Storage** — скорость чтения и записи, заполненность томов, температуры накопителей.
+Storage: read and write throughput, how full each volume is, drive temperatures.
 
 ![Storage](docs/screenshots/storage.png)
 
-**Network** — скорость приёма/передачи и счётчики по интерфейсам.
+Network: throughput and byte counters per interface.
 
 ![Network](docs/screenshots/network.png)
 
-**Power & Fans** — потребление в ваттах, обороты вентиляторов, батарея, силовые линии SMC.
+Power & Fans: watts, fan speeds, battery, and the SMC power rails.
 
 ![Power & Fans](docs/screenshots/power.png)
 
 </details>
 
-Скриншоты лежат в [docs/screenshots/](docs/screenshots/) и пересобираются командой
-`make screenshots` — приложение само отрисовывает свои вкладки с живыми показаниями.
 
-Данные читаются напрямую из системы: `AppleSMC` и `IOHIDEventSystem` для датчиков,
-`host_processor_info` для ядер, `IOAccelerator` для GPU, `host_statistics64` для памяти,
-`getifaddrs` для сети, `IOPowerSources` для батареи. Подробности — в комментариях
-к файлам в [Sources/PCHealth/Services/](Sources/PCHealth/Services/).
 
-## Заметки
+Everything comes straight from the system: `AppleSMC` and `IOHIDEventSystem` for the sensors,
+`host_processor_info` for core load, `IOAccelerator` for the GPU, `host_statistics64` for memory,
+`getifaddrs` for the network and `IOPowerSources` for the battery. The details are in the
+comments in [Sources/PCHealth/Services/](Sources/PCHealth/Services/).
 
-- **Только чтение.** Приложение ничего не пишет в SMC и не управляет вентиляторами.
-- **Без App Sandbox.** Песочница закрывает доступ к `AppleSMC`, поэтому бандл собирается без неё.
-- **Intel Mac.** Работает: там датчики отдаёт SMC, а `HID=false` в выводе — это норма.
-- **Безвентиляторные модели.** На MacBook Air раздел Cooling пишет «Fanless / not reported».
-- Опрос стоит ~70 мс, приложение с открытым окном занимает около 2-5 % CPU при интервале 2 с.
+## Notes
+
+* It only reads. Nothing is ever written to the SMC, so there is no fan control here.
+* Intel Macs work fine. The sensors come from the SMC there, and `HID=false` in the output is
+  expected rather than a failure.
+* On fanless models the SMC reports no fans at all and the Cooling section says so.
+* A sampling pass costs about 70 ms. With the window open the app sits at 2-5% CPU on a two
+  second interval.
