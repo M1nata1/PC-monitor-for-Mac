@@ -51,19 +51,6 @@ make json     # the same reading as JSON, handy for scripts
 make bench    # how many milliseconds a sampling pass costs
 ```
 
-```
-Apple M4 — Mac16,13, macOS 15.7.7
-4P + 6E · 10 threads, 24 GB RAM
-sources: HID=true SMC=true
-
-CPU      20.0%  user 12.7% sys 7.3%  load 3.89
-GPU      25.0%  AGXAcceleratorG16G (10 cores)
-Memory   84.2%  20,21 GB of 24 GB used, swap 5,47 GB
-...
-Hottest: TCMz — 81.4°C
-Sensors found: 349
-```
-
 ## What it looks like
 
 Dashboard: load and temperature rings, charts, the hottest sensors, power, network and disk.
