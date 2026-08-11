@@ -1,4 +1,4 @@
-# PC Health
+# PC Monitor for Mac
 
 A system monitor for the Mac. CPU and GPU temperatures, per-core load, memory, disks, network,
 fans, power draw and battery. There is also a tab that lists every sensor the machine exposes
