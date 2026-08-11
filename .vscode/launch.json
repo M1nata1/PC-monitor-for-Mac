@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:PC Health}",
+            "name": "Debug PCHealth",
+            "target": "PCHealth",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug PCHealth"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:PC Health}",
+            "name": "Release PCHealth",
+            "target": "PCHealth",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release PCHealth"
+        }
+    ]
+}
